@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Modern and accessible Task Manager app with add, update, and delete features." />
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗒️</text></svg>">
+    <script>
+        // Confirm before deleting a task
+        function confirmDelete(event) {
+            if (!confirm('Are you sure you want to delete this task?')) {
+                event.preventDefault();
+            }
+        }
+        // Disable submit btn on form submission and show loading text
+        function handleFormSubmit(event) {
+            const btn = event.target.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Processing...';
+            }
+        }
+    </script>
+</head>
+<body>
+    <main role="main" class="container">
+        <header>
+            <h1>Task Manager</h1>
+        </header>
+
+        <section aria-labelledby="addTaskHeading" class="task-add-section">
+            <h2 id="addTaskHeading" class="sr-only">Add New Task</h2>
+            <form id="add-task-form" action="/add" method="post" autocomplete="off" novalidate
+                  onsubmit="handleFormSubmit(event)" aria-describedby="taskHelpText">
+                <input 
+                  type="text" 
+                  name="task" 
+                  placeholder="Enter a new task" 
+                  required 
+                  aria-label="New Task"
+                  pattern=".{1,100}"
+                  title="Task must be 1 to 100 characters"
+                  />
+                <button type="submit">Add Task</button>
+                <p id="taskHelpText" class="sr-only">Type your task description and press Add Task to save it.</p>
+            </form>
+        </section>
+        
+        <section aria-labelledby="taskListHeading" class="task-list-section">
+            <h2 id="taskListHeading" class="sr-only">Task List</h2>
+            <ul id="task-list" aria-live="polite" aria-relevant="additions removals" role="list">
+            {% if tasks|length == 0 %}
+                <li class="no-tasks" tabindex="0" aria-live="polite" aria-atomic="true">
+                    No tasks have been added yet. Use the form above to add your tasks.
+                </li>
+            {% else %}
+            {% for task in tasks %}
+                <li>
+                    <div class="task-name" title="{{ task['name'] }}">{{ task['name'] }}</div>
+                    <form class="update-task-form" action="/update/{{ task['id'] }}" method="post" autocomplete="off" novalidate
+                          onsubmit="handleFormSubmit(event)">
+                        <input 
+                          type="text" 
+                          name="task" 
+                          placeholder="Update task" 
+                          required 
+                          aria-label="Update Task" 
+                          pattern=".{1,100}" 
+                          title="Task must be 1 to 100 characters"/>
+                        <button type="submit">Update</button>
+                    </form>
+                    <button class="delete-link" type="button" aria-label="Delete Task {{ task['name'] }}"
+                            onclick="if(confirm('Are you sure you want to delete this task?')) { window.location.href='/delete/{{ task['id'] }}'; }">
+                        &times; Delete
+                    </button>
+                </li>
+            {% endfor %}
+            {% endif %}
+            </ul>
+        </section>
+    </main>
+</body>
+</html>
